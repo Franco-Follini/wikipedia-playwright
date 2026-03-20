@@ -1,65 +1,58 @@
-import { test, expect } from '@playwright/test';
-
-
+import { test } from '@playwright/test';
+import { WikipediaHomePage } from '../pages/WikipediaHomePage';
+import { WikipediaEnglishPage } from '../pages/WikipediaEnglishPage';
 
 test.describe('Wikipedia UI', () => {
   test('Validación de carga del home', async ({ page }) => {
-    await page.goto('https://www.wikipedia.org/');
+    const wikipediaHome = new WikipediaHomePage(page);
 
-    await expect(page).toHaveTitle("Wikipedia");
-    await expect(page.getByText('years of the free encyclopedia')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Unlock birthday surprises on' })).toBeVisible();
-    await expect(page.locator('input[name="search"]')).toBeVisible();
+    await wikipediaHome.goto();
+    await wikipediaHome.expectHomeLoaded();
   });
 
   test('Validación de navegación a Wikipedia en inglés', async ({ page }) => {
-    await page.goto('https://www.wikipedia.org/');
+    const wikipediaHome = new WikipediaHomePage(page);
+    const wikipediaEnglish = new WikipediaEnglishPage(page);
 
-    await page.getByRole('link', { name: 'English 7,141,000+ articles'  }).click();
+    await wikipediaHome.goto();
+    await wikipediaHome.goToEnglishWikipedia();
 
-    await expect(page).toHaveURL("https://en.wikipedia.org/wiki/Main_Page");
-    await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();
-
-    await page.getByTestId("Welcome_to_Wikipedia");
-
+    await wikipediaEnglish.expectMainPageLoaded();
   });
 
   test('Validar búsqueda de Playwright (software)', async ({ page }) => {
-    await page.goto('https://www.wikipedia.org/');
+    const wikipediaHome = new WikipediaHomePage(page);
+    const wikipediaEnglish = new WikipediaEnglishPage(page);
 
-    await page.locator('select[name="language"]').selectOption('en');
-    await page.locator('input[name="search"]').fill('Playwright (software)');
-    await page.locator('button[type="submit"]').click();
+    await wikipediaHome.goto();
+    await wikipediaHome.searchInEnglish('Playwright (software)');
 
-    await expect(page).toHaveURL("https://en.wikipedia.org/wiki/Playwright_(software)");
-    await expect(
-      page.getByRole('heading', { name: "Playwright (software)" }).first()
-    ).toBeVisible();
+    await wikipediaEnglish.expectArticleUrl('https://en.wikipedia.org/wiki/Playwright_(software)');
+    await wikipediaEnglish.expectHeadingText('Playwright (software)');
   });
 
-const busquedas = [
-  'Playwright (software)',
-  'Selenium (software)',
-  'TypeScript'
-];
-//Hacemos varias búsquedas
-    busquedas.forEach((termino) => {
-  test(`Buscar ${termino} en Wikipedia`, async ({ page }) => {
+  const busquedas = [
+    'Playwright (software)',
+    'Selenium (software)',
+    'TypeScript'
+  ];
 
-    await test.step('Abrir Wikipedia', async () => {
-      await page.goto('https://www.wikipedia.org/');
-      await page.locator('select[name="language"]').selectOption('en');
+  busquedas.forEach((termino) => {
+    test(`Buscar ${termino} en Wikipedia`, async ({ page }) => {
+      const wikipediaHome = new WikipediaHomePage(page);
+      const wikipediaEnglish = new WikipediaEnglishPage(page);
+
+      await test.step('Abrir Wikipedia', async () => {
+        await wikipediaHome.goto();
+      });
+
+      await test.step('Búsqueda', async () => {
+        await wikipediaHome.searchInEnglish(termino);
+      });
+
+      await test.step('Validar resultado', async () => {
+        await wikipediaEnglish.expectSearchResultVisible();
+      });
     });
-    await test.step('Búsqueda', async () => {
-      await page.locator('input[name="search"]').fill(termino);
-      await page.locator('button[type="submit"]').click();
-    });
-    await test.step('Validar resultado', async () => {
-      await expect(page.locator('#firstHeading')).toBeVisible();
-    });
-    
   });
-
-  });
-
 });
