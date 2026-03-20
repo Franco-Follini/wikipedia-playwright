@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Wikipedia API tests', () => {
-  test('TC_API_01 | GET de información básica de una página de Wikipedia', async ({ request }) => {
+  test('GET de información básica de una página de Wikipedia', async ({ request }) => {
     // Hago un GET a una página real de Wikipedia
     const response = await request.get(
       'https://en.wikipedia.org/w/rest.php/v1/page/Wikipedia/bare'
@@ -19,7 +19,7 @@ test.describe('Wikipedia API tests', () => {
     expect(body).toHaveProperty('key');
   });
 
-  test('TC_API_02 | POST para transformar wikitext a HTML en Wikipedia', async ({ request }) => {
+  test('POST para transformar wikitext a HTML en Wikipedia', async ({ request }) => {
     // Defino un texto simple en formato wikitext
     const payload = {
       wikitext: '== Hola Wikipedia ==',
